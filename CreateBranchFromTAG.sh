@@ -19,7 +19,7 @@ TRG_BR=''
 RC_TAG_CREATE='false'
 CWD=''
 
-USER=khaazher
+USER=ninja
 GERRIT_URL=ssh://$USER@review.gerrit.net:29418
 
 if [ $# -lt 1 ]
