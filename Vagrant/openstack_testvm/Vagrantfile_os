@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+$script = <<SCRIPT
+if [ -f /usr/bin/apt-get ]
+then
+  apt-get update
+  apt-get -y install git python-pip
+else
+  if [ `cat /etc/redhat-release | cut -d" " -f3 | cut -d "." -f1` -eq 6 ]
+  then
+    wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    rpm -ivh epel-release-6-8.noarch.rpm
+  else
+    wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+    rpm -ivh epel-release-7-5.noarch.rpm
+  fi
+  yum -y update
+  yum -y install git-core python-pip
+fi
+pip install git-review
+git clone git://git.openstack.org/openstack-infra/system-config
+cd /home/vagrant/system-config
+bash -x install_puppet.sh
+ 
+bash -x install_modules.sh
+chown -R vagrant:vagrant /home/vagrant/system-config
+SCRIPT
+ 
+Vagrant.configure(2) do |config|
+  # Creates a VM with trusty flavor, change this to precise/centos66/centos7 as necessary
+  config.vm.box = "ubuntu/trusty64"
+  # Enables bridged networking on the VM. This will place your VM in your home LAN (and pick up an IP
+  # if you have DHCP enabled)
+  config.vm.network "public_network"
+  config.vm.provider "virtualbox" do |vb|
+    # This allocates 2G of memory to the VM, you can decrease/increase depending on intended use.
+    # This should be lower than your workstation/laptop available RAM.
+    vb.memory = "2048"
+  end
+  # Enables ssh agent forwarding
+  config.ssh.forward_agent = true
+  # Runs the script defined at the top of the Vagrantfile after the VM is created
+  config.vm.provision "shell", inline: $script
+end
